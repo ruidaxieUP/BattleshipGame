@@ -13,11 +13,13 @@ public class Ocean {
 	
 	Random random = new Random();
 	
+	
 	public Ocean() {
 		// initialize the ocean as empty
 		for (int i = 0; i < this.ships.length; i++) {
-			for (int j = 0; j < this.ships[0].length; j++) {
-				this.ships[i][j] = new EmptySea();
+			for (int j = 0; j < this.ships[0].length; j++) {      //this.ships[0] or this.ships[i]?
+				this.ships[i][j] = new EmptySea();   
+
 			}
 		}
 		
@@ -25,7 +27,8 @@ public class Ocean {
 		this.hitCount = 0;
 		this.shipsSunk = 0;
 		
-		placeAllShipsRandomly();
+		placeAllShipsRandomly();  // is it the right place to call this method? 
+		
 	}
 	
 	public void tryPlacingShipUntilSuccess(Ship ship) {

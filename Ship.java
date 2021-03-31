@@ -96,7 +96,7 @@ public abstract class Ship {
 	 * @return
 	 */
 	boolean okToPlaceShipAt(int row, int column, boolean horizontal, Ocean ocean) {
-		if ((row < 0) | (row < 9) | (column < 0) | (column) > 9) return false;
+		if ((row < 0) | (row > 9) | (column < 0) | (column) > 9) return false;
 		
 		int r, c;
 		
@@ -149,4 +149,3 @@ public abstract class Ship {
 		}
 	}
 }
-
