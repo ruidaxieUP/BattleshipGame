@@ -46,6 +46,7 @@ public class Ocean {
 
 			if (ship.okToPlaceShipAt(row, col, hor, this)) {
 				ship.placeShipAt(row, col, hor, this);
+				
 				break;
 			}
 		}
@@ -87,8 +88,9 @@ public class Ocean {
 	boolean shootAt(int row, int column) {
 		this.shotsFired++;
 
-		if (isOccupied(row, column)) {
+		if (this.isOccupied(row, column) & (!this.ships[row][column].isSunk())) {
 			this.hitCount++;
+			this.ships[row][column].shootAt(row, column);
 			return true;
 		}else {
 			return false;
@@ -117,6 +119,10 @@ public class Ocean {
 
 	Ship[][] getShipArray(){
 		return this.ships;
+	}
+	
+	void setShipArray(int row, int column, Ship ship) {
+		this.ships[row][column] = ship;
 	}
 
 	/**
@@ -175,14 +181,12 @@ public class Ocean {
 			Ship ship;
 			System.out.print(i + " ");
 		
-
-		
 			//print the value of each ship
 			for (int j = 0; j < this.ships[i].length; j++) {
 				ship = this.ships[i][j];
 
 				if (ship.getShipType() == "empty") {
-					System.out.print("");
+					System.out.print("  ");
 				}else {
 					//print the type of each ship
 					System.out.print(ship.getShipType() + " ");

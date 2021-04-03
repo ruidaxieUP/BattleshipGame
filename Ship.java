@@ -70,16 +70,17 @@ public abstract class Ship {
 	 */
 
 	public boolean getHitInOcean(int row, int column) {
-		int shipLocation = 0;
+		int shipLocation;
 
-		if (this.isHorizontal()) {
-			shipLocation = this.getBowColumn() - column;
-			return this.getHit()[shipLocation];
-		}else if (!this.isHorizontal()) {
-			shipLocation = this.getBowRow() - row;
-			return this.getHit()[shipLocation];
-		}return false;
+		if (this.horizontal) {
+			shipLocation = this.bowColumn - column;
+		}else {
+			shipLocation = this.bowRow - row;
+		}
+		
+		return this.hit[shipLocation];
 	}
+	
 	/**
 	 * set the row index of the front of the ship
 	 * @param row
@@ -111,8 +112,8 @@ public abstract class Ship {
 	 *Based on the given row, column, and orientation, returns true if it is okay to put a ship of this length with its bow in this location; 
 	 *Return false otherwise. 
 	 *The ship must not overlap another ship, or touch another ship (vertically, horizontally, or diagonally),
-	 *And it must not ”stick out” beyond the array. 
-	 *Does not actually change either the ship or the O​cean ​- it just says if it is legal to do so.
+	 *And it must not â€�stick outâ€� beyond the array. 
+	 *Does not actually change either the ship or the Oâ€‹cean â€‹- it just says if it is legal to do so.
 	 * @param row
 	 * @param column
 	 * @param horizontal
@@ -122,94 +123,69 @@ public abstract class Ship {
 	boolean okToPlaceShipAt(int row, int column, boolean horizontal, Ocean ocean) {
 
 		int shipLength = this.length;
-		Ship[][] ships = ocean.getShipArray();
 
-
-		//check whether any part of the ship stick out beyond the array
-		if (column > 9 || column < 0 || row > 9 || column < 0) {
-			return false;
-		}
-
-		//if the ship is horizontal
+		// the bow of the ship has to be on the 10 by 10 ocean
+		if (column > 9 || column < 0 || row > 9 || column < 0) return false;
+		
+		// the entire ship has to be place on EmptySea
+		// its neighboring locations cannot contain other ship
+		
 		if (horizontal) {
-			//check whether the ship stick out beyond the array on the left
-			if (column - shipLength + 1 < 0) {
-				return false;
-			}
+			// the rear of the ship has to be on the 10 by 10 ocean
+			if (column - shipLength + 1 < 0) return false;
 
 			//check for adjacent ships
 			//iterate over each part of the ship
 			for (int i = column - shipLength + 1; i <= column; i++) {
-				//each location that the ship occupied should have been empty
-				if(ocean.isOccupied(row, i)) {
-
-					return false;
-				}
+				//each location that the ship is to occupy should be empty
+				if(ocean.isOccupied(row, i)) return false;
 
 				//check the north and south of the ship 
-				if(ocean.isOccupied(row + 1, i) && ocean.isOccupied(row -1, i)) {
-					return false;
-				}
-
-				//for the location of ship bow
-				if (i == column) {
-					//check whether there are any adjacent ship at bowRow
-					if (ocean.isOccupied(row, i + 1) && ocean.isOccupied(row - 1, i + 1)
-							&& ocean.isOccupied(row + 1, i + 1)) {
-						return false;
-					}
-				}
-
-				//for the location of the end of the ship
-				if( i == column - shipLength +1) {
-					if(ocean.isOccupied(row, i - 1) && ocean.isOccupied(row - 1, i - 1)
-							&& ocean.isOccupied(row + 1, i - 1)) {
-						return false;
-					}
+				if ((row + 1 < 10) && ocean.isOccupied(row + 1, i)) return false;
+				if ((row - 1 >= 0) && ocean.isOccupied(row - 1, i)) return false;
+				
+				//for the 3 locations beyond the bow of the ship
+				if ((i == column) && (i + 1 < 10)) {
+					if (ocean.isOccupied(row, i + 1)) return false; 
+					if ((row + 1 < 10) && (ocean.isOccupied(row + 1, i + 1))) return false; 
+					if ((row - 1 >= 0) && (ocean.isOccupied(row - 1, i + 1))) return false; 
 				}
 				
-				return true;
-
-
+				//for the 3 locations beyond the rear of the ship
+				if ((i == column - shipLength +1) && (i - 1 >= 0)) {
+					if (ocean.isOccupied(row, i - 1)) return false;
+					if ((row - 1 >= 0) && ocean.isOccupied(row - 1, i - 1)) return false;
+					if ((row + 1 < 10) && ocean.isOccupied(row + 1, i - 1)) return false; 
+				}
 			}
+		}else {
+			// the rear of the ship has to be on the 10 by 10 ocean
+			if (row - shipLength + 1 < 0) return false;
 
-		}else if (!horizontal) {
-			//check whether ship stick beyond the array
-			if (row - shipLength + 1 < 0) {
-				return false;
-			}
-			
 			//check for adjacent ships
 			//iterate over each part of the ship
-			for (int i = row - shipLength + 1; i <= row; i++) {
-				//each location that the ship occupied should have been empty
-				if(ocean.isOccupied(i, column)){
+			for (int j = row - shipLength + 1; j <= row; j++) {
+				//each location that the ship is to occupy should be empty
+				if(ocean.isOccupied(j, column)) return false;
 
-					return false;
-				}
-				//check the east and west of the ship
-				if (ocean.isOccupied(i, column + 1) && ocean.isOccupied(i, column -1)) {
-					return false;
+				//check the north and south of the ship 
+				if ((column + 1 < 10) && ocean.isOccupied(column + 1, j)) return false;
+				if ((column - 1 >= 0) && ocean.isOccupied(column - 1, j)) return false;
+				
+				//for the 3 locations beyond the bow of the ship
+				if ((j == row) && (j + 1 < 10)) {
+					if (ocean.isOccupied(j + 1, column)) return false; 
+					if ((column + 1 < 10) && (ocean.isOccupied(j + 1, column + 1))) return false; 
+					if ((column - 1 >= 0) && (ocean.isOccupied(j + 1, column - 1))) return false; 
 				}
 				
-				//check the location of ship bow
-				if (i == row) {
-					if (ocean.isOccupied(i + 1, column) && ocean.isOccupied(i + 1, column -1)
-							&& ocean.isOccupied(i + 1, column + 1)) {
-						return false;
-					}
+				//for the 3 locations beyond the rear of the ship
+				if ((j == row - shipLength +1) && (j - 1 >= 0)) {
+					if (ocean.isOccupied(row, j - 1)) return false;
+					if ((column - 1 >= 0) && ocean.isOccupied(j - 1, column - 1)) return false;
+					if ((column + 1 < 10) && ocean.isOccupied(j - 1, column + 1)) return false; 
 				}
-				
-				//check the location of the front of the ship
-				if (i == row - shipLength +1) {
-					if(ocean.isOccupied(i - 1, column) && ocean.isOccupied(i - 1, column - 1) && ocean.isOccupied(i - 1, column + 1)) {
-						return false;
-					}
-				}
-				
-				return true;
 			}
-			
 		}
 		return true;
 		
@@ -218,7 +194,7 @@ public abstract class Ship {
 	/**
 	 * This method puts the ship in the ocean
 	 * It will give values to bowRow, bowColumn, horizontal instance variables to the ship
-	 * It also involves putting a reference to the ship in each of 1 or more locations (up to 4) in the ships array in the ​Ocean ​object. 
+	 * It also involves putting a reference to the ship in each of 1 or more locations (up to 4) in the ships array in the â€‹Ocean â€‹object. 
 	 * @param row of the ship
 	 * @param columnn of the ship 
 	 * @param horizontal boolean value of the ship 
@@ -235,60 +211,44 @@ public abstract class Ship {
 		int shipLength = this.getLength();
 
 		//if the ship is horizontal
-		if (this.isHorizontal()) {
+		if (horizontal) {
+			//for(int i = column; i >= column - shipLength + 1; i--) {
 			for (int i = column - shipLength + 1; i <= column; i++) {
-				//for(int i = column; i >= column - shipLength + 1; i--) {
-
-				ocean.getShipArray()[row][i] = this;
+				ocean.setShipArray(row, i, this);
 			}
-		}else if (!this.isHorizontal()) {
+		}else {
+			//for (int i = row; i>= row - shipLength +1; i--) {
 			for (int i = row - shipLength + 1; i <= row; i++) {
-				//for (int i = row; i>= row - shipLength +1; i--) {
-
-				ocean.getShipArray()[i][column] = this;
+				ocean.setShipArray(i, column, this);
 			}
 		}
 	}
 
 	/**
-	 * If a part of the ship occupies the given row and column, and the ship hasn’t been sunk, 
-	 * mark that part of the ship as “hit” (in the hit array, index 0 indicates the bow) and return true; 
+	 * If a part of the ship occupies the given row and column, and the ship hasnâ€™t been sunk, 
+	 * mark that part of the ship as â€œhitâ€� (in the hit array, index 0 indicates the bow) and return true; 
 	 * otherwise return false.
 	 * @param row
 	 * @param column
 	 * @return
 	 */
 	boolean shootAt(int row, int column) {
+		// if ship is already sunk, return false
+		if (this.isSunk()) return false;
+		
 		int bowColumn = this.getBowColumn();
 		int bowRow = this.getBowRow();
-		int shipLength = this.getLength();
-		int hitLocationIndex= 0;
-
-		if (!this.isSunk()) {
-			if (this.isHorizontal()) {
-				if (bowRow == row) {
-					for (int i = bowColumn - shipLength + 1; i <= bowColumn; i++) {
-						if (i == column) {
-
-							hitLocationIndex = bowColumn - i;
-							this.getHit()[hitLocationIndex] = true;
-							return true;
-						}
-					}
-				}
-			}else if (!this.isHorizontal()) {
-				if (bowColumn == column) {
-					for (int i = bowRow - shipLength + 1; i <= bowRow; i++) {
-						if (i == row) {
-							hitLocationIndex = bowRow - i;
-							this.getHit()[hitLocationIndex] = true;
-							return true;
-						}
-					}
-				}
-
-			}
-		}return false;
+		
+		// if the shot does not hit the ship, return false
+		if ((bowRow != row) && (bowColumn != column)) return false;
+		
+		int hitIndex = (bowRow - row) + (bowColumn - column);
+		
+		if (hitIndex >= this.length) return false;
+		
+		// rule out all the miss scenarios, then it is a valid hit
+		this.hit[hitIndex] = true;
+		return true;
 	}
 
 
